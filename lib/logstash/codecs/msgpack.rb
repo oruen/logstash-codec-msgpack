@@ -41,7 +41,12 @@ class LogStash::Codecs::Msgpack < LogStash::Codecs::Base
     data = LogStash::Util.normalize(event.to_hash)
     # timestamp is serialized as a iso8601 string
     # merge to avoid modifying data which could have side effects if multiple outputs
-    @on_event.call(event, MessagePack.pack(data.merge(LogStash::Event::TIMESTAMP => event.timestamp.to_iso8601)).to_java_bytes)
+    extra_data = if event.timestamp
+                   {LogStash::Event::TIMESTAMP => event.timestamp.to_iso8601}
+                 else
+                   {}
+                 end
+    @on_event.call(event, MessagePack.pack(data.merge(extra_data)).to_java_bytes)
   end # def encode
 
 end # class LogStash::Codecs::Msgpack
